@@ -1,0 +1,177 @@
+---
+title: "Nutrition Study - Final Project"
+author: "Group 14"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Introduction
+
+While observing and analyzing patients, it is important to gain an understanding of their personal, dietary and underlying health characteristics.
+
+In this data analysis, the relationship between dietary factors, behavioral/personal factors and other health factors is analyzed. The entirety of the analysis makes use of **Nutrition Study** [1] dataset. The dataset contains data on over 300 patients that have underwent surgical procedures over a 3-year span. The data investigates numerous variables including personal characteristics of patients, including but not limited to: Age and Gender, behavior characteristics including: Alcohol Consumption, Smoking Status, Vitamin Use and health factors including: Beta Plasma Concentration and Retinol Plasma Concentration.
+
+With each of the given variables in the dataset, three research questions were raised. The analysis should answer the following questions:
+
+1. Does vitamin use influence the concentration of retinol plasma?
+2. Do current smokers consume more alcohol than former or non-smokers?
+3. Analyze the correlation between retinol plasma, beta plasma, retinol diet and beta diet across the age, gender, vitamin users and smokers.
+
+It is anticipated and hypothesized that patients who use vitamins will see a change in retinol plasma levels, that current smokers will reach for more alcoholic beverages on a weekly basis and that there possibly is a significant correlation between all plasma and diet levels with respect to age, gender, vitamin use and smoking status.
+
+## Results
+
+#### Glimpse of the Nutrition Study Dataset  
+
+First, let's take a glimpse at the **Nutrition Study** dataset, to gain a better understanding of the methods that will be used.
+
+```{r nutrition, echo = FALSE}
+load("NutritionStudy.rda")
+glimpse(NutritionStudy)
+```
+
+The following variables will be observed: Age, Smoke, Alcohol, BetaDiet, RetinolDiet, BetaPlasma, RetinolPlasma, VitaminUse.
+Smoke and VitaminUse are 'boolean' or 'categorical' variables, so visualizations (i.e, boxplots) will be created accordingly.
+
+#### Research Question 1: Methods & Results  
+The first question we would like to answer in this analysis is: Does vitamin use influence the concentration of retinol plasma?
+
+In order to answer this question, a visualization of vitamin use with respect to retinol plasma is created. This visualization will make use of plotting methodologies. R's ggplot and geom_boxplot functionalties are used.
+
+```{r, echo=FALSE}
+ggplot(NutritionStudy, aes(x = VitaminUse, y = RetinolPlasma)) + geom_boxplot(color="blue", fill="grey") + labs(x = "Vitamin Use", y = "Retinol Plasma (ng/ml)",
+       title = "Vitamin Use vs. Retinol Plasma")
+```
+
+Moreover, to analyze the numbers, the mean and median summary statistics for each VitaminUse group with respect to retinol plasma concentration are computed. These values make use of base R functions group_by() and summarize().
+
+```{r, echo=FALSE}
+NutritionStudy %>%
+  group_by(VitaminUse) %>%
+  summarize(mean.plasma = mean(RetinolPlasma), med.plasma = median(RetinolPlasma))
+```
+
+Lastly, the analyze the ranking and ranges of the concentrations for each VitaminUse group, quantiles were computed using the base R quantile() function. The first quantile displays the percentiles and concentrations for VitaminUse = 1 or 'No'. The second quantile displays the percentiles and concentrations for VitaminUse = 2 or 'Occasional'. The third quantile displays the percentiles and concentrations for VitaminUse = 3 or 'Regular'.
+
+```{r, echo=FALSE}
+#Percentiles for vitamin use 1 (No)
+no.vitamin <- NutritionStudy %>%
+                  filter(Vitamin == 1)
+no.vitamin <- quantile(no.vitamin$RetinolPlasma, probs = seq(0,1,0.25), na.rm = TRUE)
+no.vitamin
+
+#Percentiles for vitamin use 2 (Occasional)
+occasional.vitamin <- NutritionStudy %>%
+                  filter(Vitamin == 2)
+occasional.vitamin <- quantile(occasional.vitamin$RetinolPlasma, probs = seq(0,1,0.25), na.rm = TRUE)
+occasional.vitamin
+
+#Percentiles for vitamin use 3 (Regular)
+regular.vitamin <- NutritionStudy %>%
+                  filter(Vitamin == 3)
+regular.vitamin <- quantile(regular.vitamin$RetinolPlasma, probs = seq(0,1,0.25), na.rm = TRUE)
+regular.vitamin
+```
+
+#### Research Question 2: Methods & Results
+
+The second question we would like to answer in this analysis is: Do current smokers also consume more alcohol than former/non-smokers?
+
+In order to compare smoking to alcohol, a boxplot similar to part 1 can be used. Since the goal is to see how current/former/non-smokers drink, the variable FormerSmoke will be used instead of Smoke. Since FormerSmoke is a bit uninformative as just 0, 1, and 2, the plots are relabeled to show the smoking status.
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(NutritionStudy, aes(x = as.factor(PriorSmoke), y = Alcohol)) + geom_boxplot(color="blue", fill="grey") + labs(x = "Smoking", y = "Alcohol (drinks per week)",
+       title = "Smoking vs Alcohol") + scale_x_discrete(labels = c("Never", "Former", "Current"))
+```
+
+Summary statistics mean and median:
+```{r, echo=FALSE}
+NutritionStudy %>%
+  group_by(PriorSmoke) %>%
+  summarize(mean.drinks = mean(Alcohol), med.drinks = median(Alcohol))
+```
+
+Something is clearly off with the analysis. The interquartile ranges are barely visible on the boxplots, and while the median for former smoke (2) is higher than current smoke (3), the means are reversed. Looking at the boxplot and the data, there is one current smoker that has over 200 drinks per week. While removing a valid datapoint is not a good practice, it will allow us to better see the trends in the data as long as the removal is taken into account.
+
+Remove major outlier:
+```{r, echo=FALSE}
+NutritionStudy.New <- NutritionStudy[NutritionStudy$Alcohol < 50,]
+ggplot(NutritionStudy.New, aes(x = as.factor(PriorSmoke), y = Alcohol)) + geom_boxplot(color="blue", fill="grey") + labs(x = "Smoking", y = "Alcohol (drinks per week)",
+       title = "Smoking vs Alcohol") + scale_x_discrete(labels = c("Never", "Former", "Current"))
+```
+Mean/Median no Outlier:
+```{r, echo=FALSE}
+NutritionStudy.New %>%
+  group_by(PriorSmoke) %>%
+  summarize(mean.drinks = mean(Alcohol), med.drinks = median(Alcohol))
+```
+
+With the outlier removed, the trend is much easier to see. Never smokers have the least amount of alcohol, with the lowest mean/median, current smokers are in the middle for mean/median, and former smokers drink the most. This is an interesting conclusion, possibly suggesting that former smokers turned to alcohol as their new substance of choice.
+
+#### Research Question 3: Methods & Results  
+
+Question 3 involves seeing how Beta/Retinol Plasma/Diet relates to relevant predictors. For the analysis, the predictors Age, Gender, VitaminUse, and PriorSmoke are chosen. To analyze the trends, a multiple linear regression is used.
+
+```{r, echo=FALSE, warning=FALSE}
+lm.fit <- lm(BetaPlasma ~ Age + Gender + VitaminUse + PriorSmoke, data = NutritionStudy)
+summary(lm.fit)
+plot(lm.fit)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+lm.fit.2 <- lm(RetinolPlasma ~ Age + Gender + VitaminUse + PriorSmoke, data = NutritionStudy)
+summary(lm.fit.2)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+lm.fit.3 <- lm(BetaDiet ~ Age + Gender + VitaminUse + PriorSmoke, data = NutritionStudy)
+summary(lm.fit.3)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+lm.fit.4 <- lm(RetinolDiet ~ Age + Gender + VitaminUse + PriorSmoke, data = NutritionStudy)
+summary(lm.fit.4)
+```
+
+None of the regressions show major significance values and suggests that there may not be a correlation. In order to test this, the regression can be broken down into single regressions to see if the other predictors are messing it up. With VitaminUse hopefully being correlated with BetaDiet, a single regression is created.
+
+```{r, echo=FALSE, warning=FALSE}
+lm.fit.5 <- lm(BetaDiet ~ VitaminUse, data = NutritionStudy)
+summary(lm.fit.5)
+```
+
+Even this regression suggests little to no correlation. Out of all the regressions, the only significant coefficient is VitaminUseRegular with BetaPlasma. 
+
+```{r, echo=FALSE, warning=FALSE}
+lm.fit.6 <- lm(BetaPlasma ~ VitaminUse, data = NutritionStudy)
+summary(lm.fit.6)
+```
+
+Even if one value of a factor shows correlation, the overall conclusion is that there is not much of a correlation of the Diet/Plasma levels across Age, Gender, VitaminUse, and Smoking overall.
+
+
+## Conclusion
+
+Overall, in this analysis it is apparent that our questions have been answered greatly. 
+
+We can conclude that for question one, the retinol plasma concentrations, on average, are higher for the patients who use vitamins regularly. Moreover, the retinol plasma concentrations are lower, on average for those who do not use vitamins at all. 
+
+Furthermore, for research question two, it can be said that former smokers have seemed to have turned to alcohol as their new substance of choice. Not counting the one person that has 200 drinks of alcohol per week, former smokers drink on average 50% more than current smokers and over double that of non-smokers. 
+
+Moreover, it can also be concluded that for research question three, none of the multiple regression models gave confident results that any of the predictors were significantly correlated. Even directly comparing diet to vitamin use as a single regression barely showed any significance. This means either that there is little correlation, or that they are not correlated linearly.
+
+Looking into the methods used for this analysis, histograms could have also been plotted for research questions 1 and 2, to have additional visualizations to back up the claims made. For question 3, we could have found parsimonious models as well to seek out which predictors did not matter much in the original multiple regression model.
+
+With the variables analyzed, all comparisons made are appropriate, easy to understand and intuitive. The analysis has no bias and can be assumed to be strongly valid. However, in the future it would be best to go more in depth within the analysis, for example, we could create a linear regression model for research questions 1 and 2 to see how strongly or non-strongly correlated the variables in question are.
+
+## References
+
+[1] Nierenberg, D, et al. (1989). Determinants of Plasma Levels of Beta-Carotene and Retinol. American Journal of Epidemiology. https://lib.stat.cmu.edu/datasets/Plasma_Retinol
+
+
