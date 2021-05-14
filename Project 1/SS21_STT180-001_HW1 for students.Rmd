@@ -1,0 +1,612 @@
+---
+title: "SS21 STT 180 Homework 1"
+author: "Emani Hunter"
+date: "Jan30-Feb13, 2021"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+  html_document:
+    toc: yes
+    number_sections: no
+    toc_float: yes
+    toc_depth: 4
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      comment = NA)
+```
+This homework assignment consists of two sections. The first section deals with data structures and the second section is a small data analysis project. You will use the data wrangling and tidying knowledge for this section.
+
+**General Instructions:** 
+
++ This is an individual assignment. You may consult with others as you work on the assignment, but each student should write up a separate set of solutions. 
++ Rather than creating a new Rmd file, just add your solutions to the supplied Rmd file. Submit both the Rmd file and the resulting HTML/PDF file to D2L. 
++ Except for questions, or parts of questions, that ask for your commentary, use R in a code chunk to answer the questions. 
++ The code chunk option `echo = TRUE` is specified in the setup code chunk at the beginning of the document. Please do not override this in your code chunks.
++ A solution will lose points if the Rmd file does not compile. If one of your code chunks is causing your Rmd file to not compile, you can use the `eval = FALSE` option. Another possibility is to use the `error = TRUE` option in the code chunk. 
++ This Homework is due on **Saturday, February 13, 2021 on or before 11 pm.**
++ Kindly submit both the .rmd and the HTML or pdf output files. If you submit the output in html format, zip the files while submitting.
+
+# Section 1 
+
+This section focuses on some basic manipulations of vectors in R.
+
+### Question 1
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create three vectors in R: One called `evennums` which contains the even integers from 1 through 15. One called `charnums` which contains character representations of the numbers 4 through 8, namely, "4", "5", "6", "7", "8". And one called `mixed` which contains the same values as in `charnums` but which also contains the letters "a", "b" and "c". **No commentary or explanations are necessary.**
+
+</div>
+
+```{r}
+evennums <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)
+charnums <- c("4","5","6","7","8")
+mixed <- c("4","5","6","7","8","a","b","c")
+```
+
+
+### Question 2
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Investigate what happens when you try to convert `evennums` to character and to logical. Investigate what happens when you convert `charnums` to numeric. Investigate what happens when you convert `mixed` to numeric. **Comment on each of these conversions.**
+</div>
+
+```{r}
+as.character(evennums)
+as.logical(evennums)
+as.numeric(charnums)
+as.numeric(mixed)
+```
+Converting 'evennums' to character:
+- When calling as.character(evennums), a vector of type character is created, each value in the evennums vector is turned into a character.
+
+Converting 'evennums' to logical:
+- When calling as.logical(evennums), a vector of type logical is created, each value in the evennums vector is turned into a logical 'true' value.
+
+Converting 'charnums' to numeric:
+- When calling as.numeric(charnums), a vector of type numeric is created, each character in the charnums vector is turned into an actual numeric value.
+
+Converting 'mixed' to numeric:
+- When calling as.numeric(mixed), a vector of type numeric is created, each character that is a "number" is turned into a numeric value, but, each character that is a letter cannot be turned into a numeric value and so, we get an NA position in the vector.
+### Question 3 
+
+**No commentary is necessary on this part.**
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+a. Show how to extract the first element of `evennums.`
+
+</div>
+
+```{r}
+evennums[1]
+```
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+b. Show how to extract the last element of `evennums.` In this case you are NOT allowed to use the fact that `evennums` has seven elements, rather, you must give code which would work no matter how many elements `evennums` has.
+
+</div>
+
+```{r }
+evennums[length(evennums)]
+```
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+c. Show how to extract all but the first element of `evennums.`
+
+</div>
+
+```{r}
+evennums[-1]
+```
+
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+d. Show how to extract all but the first two and last two elements of `evennums`.
+
+</div>
+
+```{r}
+evennums[-c(1,2,length(evennums)-1,length(evennums))]
+```
+
+### Question 4
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+a. Generate a sequence "y" of 50 evenly spaced values between 0 and 1.
+</div>
+```{r}
+y <- seq(0,1,length.out = 50)
+y
+```
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+b. Calculate the mean of the sequence.
+
+</div>
+```{r}
+mean(y)
+```
+# Section 2 
+
+The dataset contains information about births in the United States. The full data set is from the Centers for Disease Control. The data for this homework assignment is a "small" sample (chosen at random) of slightly over one million records from the full data set. The data for this homework assignment also only contain a subset of the variables in the full data set. 
+
+### Setting up
+
+Load `tidyverse`, which includes `dplyr`, `tidyr`, and other packages, and the load `knitr. 
+
+```{r echo=TRUE}
+library(tidyverse)
+library(knitr)
+```
+
+Read in the data and convert the data frame to a tibble.
+
+```{r calling_data, echo=TRUE}
+birth_data <- read.csv("BirthData.csv", header = TRUE)
+birth_data <- as_tibble(birth_data)
+```
+
+A glimpse of the data:
+
+```{r }
+glimpse(birth_data)
+```
+
+The variables in the data set are:
+
+Variable | Description
+---------|------------
+`year` | the year of the birth
+`month` | the month of the birth
+`state` | the state where the birth occurred, including "DC" for Washington D.C.
+`is_male` | which is `TRUE` if the child is male, `FALSE` otherwise
+`weight_pounds` | the child's birth weight in pounds
+`mother_age` | the age of the mother    
+`child_race` | race of the child. 
+`plurality` | the number of children born as a result of the pregnancy, with 1 representing a single birth, 2 representing twins, etc.
+
+
+For both of Questions 1 and 2 you should show the R code used and the output of the  `str` and`glimpse` functions applied to the data frame. Use of dplyr functions and the pipe operator is highly recommended.
+
+### Question 1
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a variable called `region` in the data frame `birth_data` which takes the values `Northeast`, `Midwest`, `South`, and `West`. The first two Steps have been done for you.
+
+</div>
+
+Here are the states in each region:
+
+##### Northeast Region:
+
+Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island and Vermont, New Jersey, New York, and Pennsylvania
+
+##### Midwest Region:
+
+Illinois, Indiana, Michigan, Ohio and Wisconsin,
+Iowa, Kansas, Minnesota, Missouri, Nebraska, North Dakota, and South Dakota
+
+##### South Region:
+
+Delaware, District of Columbia, Florida, Georgia, Maryland, North Carolina, South Carolina, Virginia, and West Virginia,
+Alabama, Kentucky, Mississippi, and Tennessee,
+Arkansas, Louisiana, Oklahoma, and Texas
+
+##### West Region:
+
+Arizona, Colorado, Idaho, Montana, Nevada, New Mexico, Utah and Wyoming,
+Alaska, California, Hawaii, Oregon and Washington
+
+```{r echo = TRUE}
+#Step 1: Assign the regions.
+NE <- c("CT", "ME", "MA", "NH", "RI", "VT", "NJ", "NY", "PA")
+MW <- c("IL", "IN", "MI", "OH", "WI", "IA", "KS", "MN", "MO", "NE", "ND", "SD")
+SO <- c("DE", "DC", "FL", "GA", "MD", "NC", "SC", "VA", "WV", "AL", "KY", "MS", "TN", "AR", "LA", "OK", "TX")
+WE <- c("AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY", "AK", "CA", "HI", "OR", "WA")
+## Step 2 Create a blank vector
+birth_data$region <- rep(NA, length(birth_data$state))
+
+## Hint use if-else and %in% to create the regions.
+
+
+birth_data$region[birth_data$state %in% NE] <-  "Northeast"
+
+birth_data$region[birth_data$state %in% MW] <-  "Midwest"
+
+birth_data$region[birth_data$state %in% SO] <- "South"
+
+birth_data$region[birth_data$state %in% WE] <-  "West"
+
+glimpse(birth_data)
+```
+
+### Question 2
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a variable in `birth_data` called `state_color` which takes the values `red`, `blue`, and `purple`, using the following divisions. 
+
+</div>
+
+##### Red:
+Alaska,
+Idaho,
+Kansas,
+Nebraska,
+North Dakota,
+Oklahoma,
+South Dakota,
+Utah,
+Wyoming,
+Texas,
+Alabama,
+Mississippi,
+South Carolina,
+Montana,
+Georgia,
+Missouri,
+Louisiana,
+Tennessee,
+Arkansas,
+Kentucky,
+Arizona,
+West Virginia.
+
+##### Purple:
+
+North Carolina,
+Virginia,
+Florida,
+Ohio,
+Colorado,
+Nevada,
+Indiana,
+Iowa,
+New Mexico.
+
+##### Blue:
+
+New Hampshire,
+Pennsylvania,
+California,
+Michigan,
+Illinois,
+Maryland,
+Delaware,
+New Jersey,
+Connecticut,
+Vermont,
+Maine,
+Washington,
+Oregon,
+Wisconsin,
+New York,
+Massachusetts,
+Rhode Island,
+Hawaii,
+Minnesota,
+District of Columbia.
+
+```{r state_color, echo = TRUE}
+RED <- c("AK", "ID", "KS", "NE", "ND", "OK", "SD", "UT", "WY", "TX", "AL", "MS", "SC", "MT", "GA", "MO", "LA", "TN", "AR", "KY", "AZ", "WV")
+PURPLE <- c("NC", "VA", "FL", "OH", "CO", "NV", "IN", "IA", "NM")
+BLUE <- c("NH", "PA", "CA", "MI", "IL", "MD", "DE", "NJ", "CT", "VT", "ME", "WA", "OR", "WI", "NY", "MA", "RI", "HI", "MN", "DC")
+
+## try using mutate
+birth_data$state_color <- rep(NA,length(birth_data$state))
+
+#using if-else to check if state color is red, blue or purple
+birth_data$state_color <- ifelse(birth_data$state%in% RED, "red",ifelse(birth_data$state%in% PURPLE, "purple",ifelse(birth_data$state%in% BLUE, "blue",NA)))
+
+glimpse(birth_data)
+```
+
+### Question 3
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create two new objects `perc_male` and `perc_female` that caluclates the percentile ranking of a baby's weight with respect to the baby's sex. 
+
+</div>
+
+```{r percentile_gender, echo = TRUE}
+## The dataset to find the male percentiles
+birth_data1<-birth_data%>%
+              filter(is_male== TRUE)#%>%
+               # select(is_male, weight_pounds, plurality)
+glimpse(birth_data1)
+
+## Hint: use the quantile function to find the percentiles.
+#Male percentiles
+perc_male <- quantile(birth_data1$weight_pounds, probs = seq(0,1,0.25), na.rm = TRUE, names = TRUE)
+perc_male
+
+birth_data_female <- birth_data%>% 
+                      filter(is_male == FALSE)
+
+glimpse(birth_data_female)
+
+#Female percentiles
+perc_female <- quantile(birth_data_female$weight_pounds, probs = seq(0,1,0.25), na.rm = TRUE, names = TRUE)
+perc_female
+```
+
+
+### Question 4
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+
+Create another new variable that records the percentile ranking of a baby's weight with respect to the baby's plurality (i.e., whether it was a single child, twin, triplet, etc.). [i.e., if a baby is a twin (plurality = 2), the variable should record the percentile ranking of the baby's weight relative only to all other twins.]
+
+</div>
+
+```{r percentile_plurality}
+## The dataset for plurality = 1 ; do the same for the other pluralities
+birth_data1<-birth_data%>%
+              filter(plurality == 1)#%>%
+glimpse(birth_data1)
+
+## Hint: use the quantile function to find the percentiles.
+birth_data2 <- birth_data%>% 
+                filter(plurality == 2)
+birth_data3 <- birth_data%>% 
+                filter(plurality == 3)
+birth_data4 <- birth_data%>% 
+                filter(plurality == 4)
+birth_data5 <- birth_data%>% 
+                filter(plurality == 5)
+# percentile
+
+#Percentile for plurality 1
+percentile_plu1 <- quantile(birth_data1$weight_pounds,probs = seq(0,1,0.25),na.rm = TRUE, names = TRUE)
+percentile_plu1
+
+#Percentile for plurality 2
+percentile_plu2 <- quantile(birth_data2$weight_pounds,probs = seq(0,1,0.25),na.rm = TRUE, names = TRUE)
+percentile_plu2
+
+#Percentile for plurality 3
+percentile_plu3 <- quantile(birth_data3$weight_pounds,probs = seq(0,1,0.25),na.rm = TRUE, names = TRUE)
+percentile_plu3
+
+#Percentile for plurality 4
+percentile_plu4 <- quantile(birth_data4$weight_pounds,probs = seq(0,1,0.25),na.rm = TRUE, names = TRUE)
+percentile_plu4
+
+#Percentile for plurality 5
+percentile_plu5 <- quantile(birth_data5$weight_pounds,probs = seq(0,1,0.25),na.rm = TRUE, names = TRUE)
+percentile_plu5
+```
+
+### Question 5
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Provide an example case in which these two percentile rankings in Question 3 and Question 4 (gender vs plurality) would be quite similar. Provide another example case in which these two percentile rankings would be quite different.
+
+```{r}
+perc_male 
+perc_female
+
+percentile_plu1 #similar rankings
+percentile_plu4 #different rankings
+```
+One example for when the two percentile rankings in Question 3 and 4 would be quite similar is the percentile ranking of male/female versus the percentile ranking for plurality of 1. There is a lot of commonality between percentile values, the numbers a extremely similar.
+
+One example for when the two percentile rankings in Question 3 and 4 would be quite different is the percentile ranking of male/female versus the percentile ranking for plurality of 4. The values are extremely different, with the percentile values for plurality of 4 being extremely low, especially in the median range.
+
+</div>
+
+### Question 6
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Agree or disagree with this claim. If you agree, provide a rationale for why it is correct. If you disagree, provide a counter-example that reveals the error in its thinking:
+
+"If these two percentile rankings are very different from one another, we should suspect that the baby in question is more likely to be a twin/triplet/etc., than a single-birth."
+
+```{r}
+perc_male
+perc_female
+
+#comparing percentile rankings
+percentile_plu1
+percentile_plu2
+percentile_plu3
+```
+
+I disagree with this claim. Seeing as the plurality 1 percentile values are more closely related to the male/female percentile values, it is apparent that the baby in question is more likely to be a single-birth rather than a twin/triplet/etc. Whether the baby is male or female, a single birth plurality percentile values will always be within the same range since one baby can be either gender.
+
+</div>
+
+
+Some of the variables have missing values, and these may be related to different data collection choices during different years. For example, possibly plurality wasn't recorded during some years, or state of birth wasn't recorded during some years. In this exercise we investigate using some `dplyr` functions. Hint: The `group_by` and `summarize` functions will help. 
+
+### Question 7
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Count the number of missing values in each variable in the data frame.
+
+**Is this question asking for the total missing values in each variable or missing values for each variable per year?**
+</div>
+
+```{r missing_values, eval=TRUE}
+#Total missing values in each variable
+sum(is.na(birth_data$state))
+sum(is.na(birth_data$month))
+sum(is.na(birth_data$year))
+sum(is.na(birth_data$weight_pounds))
+sum(is.na(birth_data$is_male))
+sum(is.na(birth_data$mother_age))
+sum(is.na(birth_data$child_race))
+sum(is.na(birth_data$plurality))
+
+#Missing values for each variable per year
+birth_data %>% 
+  group_by(year) %>% 
+  summarize(states_na = sum(is.na(state)),child_race_na = sum(is.na(child_race)), month_na = sum(is.na(month)), weight_na = sum(is.na(weight_pounds)), is_male_na = sum(is.na(is_male)), age_na = sum(is.na(mother_age)), plu_na = sum(is.na(plurality)))
+```
+
+### Question 8
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Use `group_by` and `summarize` to count the number of missing values of the two variables, `state` and `child_race`, for each year, and to also count the total number of observations per year. 
+
+Are there particular years when these two variables are either not available, or of limited availability?
+
+</div>
+
+```{r eval = TRUE}
+birth_data %>% 
+  group_by(year) %>% 
+  summarize(states_na = sum(is.na(state)),child_race_na = sum(is.na(child_race)), total_obs = length(state))
+```
+It can be seen that in the years between 1969 and 2002, the values for state and child_race are not available. The later years, 2005 and beyond seem to have values for each state and child_race. Due to the earlier years not having values, it could be assumed that birth data may have been lost.
+
+### Question 9
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create the following data frame which gives the counts, the mean weight of babies and the mean age of mothers for the six levels of `plurality`. Comment on what you notice about the relationship of plurality and birth weight, and the relationship of plurality and age of the mother.
+
+</div>
+
+```{r plurality_count_weight_age}
+birth_data %>% 
+  group_by(plurality) %>% 
+  summarize(count = n(),mean_weight = mean(weight_pounds,na.rm = TRUE),mean_age = mean(mother_age,na.rm = TRUE))
+```
+The relationship between plurality and birth weight is inversely proportional. As plurality increases, birth weight decreases. Whereas, the relationship between plurality and age of the mother is somewhat directly proportional. As plurality increases, the mother's age seems to be within the same range or a bit older. It can be said the older aged mothers tend to have more kids.
+
+### Question 10
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a data frame which gives the counts, the mean weight of babies and the mean age of mothers for each combination of the four levels of `state_color` and the two levels of `is_male`. 
+</div>
+
+```{r gender_state_color_count_weight_age}
+birth_data %>% 
+  group_by(state_color) %>% 
+  summarize(count = n(),mean_weight = mean(weight_pounds,na.rm = TRUE),mean_age = mean(mother_age,na.rm = TRUE))
+
+birth_data %>% 
+  group_by(is_male) %>% 
+  summarize(count = n(),mean_weight = mean(weight_pounds,na.rm = TRUE),mean_age = mean(mother_age,na.rm = TRUE))
+```
+
+
+# Essential details 
+
+### Deadline and submission
+
+The deadline to submit Homework 1 is **11:00pm on Saturday, February 13th.** This is a individual assignment.
+Submit your work by uploading your RMD and HTML/PDF files through D2L. Kindly double check your submission to note whether the everything is displayed in the uploaded version of the output in D2L or not. If submitting HTML outputs, please zip the files for submission. Late work will not be accepted except under certain extraordinary circumstances.
+
+
+### Help
+
+- Post general questions in the Teams HW 1 channel. If you are trying to get help on a code error, explain your error in detail
+
+- Feel free to visit us in during our virtual office hours or make an appointment.
+
+- Communicate with your classmates, but do not share snippets of code.
+
+- The instructional team will not answer any questions within the first 24 hours of this homework being assigned, and we will not answer any questions after 6 P.M of the due date.
+
+
+### Academic integrity
+
+This is an individual assignment.You may discuss ideas, how to debug code, and how to approach a problem with your classmates in the discussion board forum.
+You may not copy-and-paste another's code from this class. As a reminder, 
+below is the policy on sharing and using other's code.
+
+>Similar reproducible examples (reprex) exist online that will help you answer 
+many of the questions posed on group assignments, and homework assignments. Use of these resources is allowed 
+unless it is written explicitly on the assignment. You must always cite any 
+code you copy or use as inspiration. Copied code without citation is 
+plagiarism and will result in a 0 for the assignment.
+
+
+### Grading
+
+You must use R Markdown. Formatting is at your discretion but is graded. Use the
+in-class assignments and resources available online for inspiration. Another 
+useful resource for R Markdown formatting is
+available at: https://holtzy.github.io/Pimp-my-rmd/
+
+**Topic**|**Points**
+---------|----------:|
+Questions 1-4 (Sec 1) and 1-10 (Sec 2) | 70
+R Markdown formatting| 5
+Communication of results| 10
+Rmd file compilation     | 5
+Code style and named code chunks| 10
+
+**Total**|**100**
+
