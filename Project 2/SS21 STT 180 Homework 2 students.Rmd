@@ -1,0 +1,624 @@
+---
+title: "SS21 STT 180 Homework 2"
+author: "Emani Hunter"
+date: "Feb 27-March 13, 2021"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+  html_document:
+    toc: yes
+    number_sections: no
+    toc_float: yes
+    toc_depth: 4
+    df_print: paged
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      comment = NA)
+```
+
+**General Instructions:** 
+
++ This is an individual assignment. You may consult with others as you work on the assignment, but each student should write up a separate set of solutions. 
++ Rather than creating a new Rmd file, just add your solutions to the supplied Rmd file. Submit **both** the Rmd file and the resulting HTML/PDF file to D2L. 
++ Except for questions, or parts of questions, that ask for your commentary, use R in a code chunk to answer the questions. 
++ The code chunk option `echo = TRUE` is specified in the setup code chunk at the beginning of the document. Please do not override this in your code chunks.
++ A solution will lose points if the Rmd file does not compile. If one of your code chunks is causing your Rmd file to not compile, you can use the `eval = FALSE` option. Another possibility is to use the `error = TRUE` option in the code chunk. 
++ This Homework is due on **Saturday, March 13, 2021 on or before 11 pm.**
++ Kindly submit **both** the .rmd and the HTML/PDF output files. If you submit the output in html format, zip the files while submitting.
+
+
+**Setting up:**
+
+Load `tidyverse`, which includes `dplyr`, `ggplot2`, `tidyr`, and other packages, and the load `knitr. 
+
+```{r echo=TRUE}
+library(tidyverse)
+library(knitr)
+```
+
+Homework 2 has two sections. In Section 1 you will use data visualization and write function to analyze a dataset.For Section 2 you will read an article, explore the data, validate the claims and come to own conclusions.
+
+
+# Section 1
+
+For the first section of this homework will use the same birth dataset you used for Homework 1. Please use the `BirthDataWithRegionColors.csv` file for this HW. The dataset contains information about births in the United States. The full data set is from the Centers for Disease Control. The data for this homework assignment is a "small" sample (chosen at random) of slightly over one million records from the full data set. The data for this homework assignment also only contain a subset of the variables in the full data set. 
+
+## Introduction
+
+Read in the data and convert the data frame to a tibble.
+
+```{r echo=TRUE}
+birth_data <- read.csv("BirthDataWithRegionColors.csv", header = TRUE)
+birth_data <- as_tibble(birth_data)
+```
+
+A glimpse of the data:
+
+```{r }
+glimpse(birth_data)
+```
+
+The variables in the data set are:
+
+Variable | Description
+---------|------------
+`year` | the year of the birth
+`month` | the month of the birth
+`state` | the state where the birth occurred, including "DC" for Washington D.C.
+`is_male` | which is `TRUE` if the child is male, `FALSE` otherwise
+`weight_pounds` | the child's birth weight in pounds
+`mother_age` | the age of the mother    
+`child_race` | race of the child. 
+`plurality` | the number of children born as a result of the pregnancy, with 1 representing a single birth, 2 representing twins, etc.
+
+
+
+Combine `dplyr`with `ggplot2` to create graphical displays of the data. Use `filter`, `group_by`, and `summarize` build the required data frame.
+
+### Question 1
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a plot of mean age of mother versus year, which includes separate lines for each of the four regions of the country. (Don't include data for which the region is missing.) The graphic should look like the following. 
+
+</div>
+
+```{r Mean Age per region plot}
+region_valid <- birth_data %>%
+                filter(!is.na(region))
+
+mean_mother_age <- region_valid %>%
+                    group_by(year,region) %>%
+                    summarize(mean_age = mean(mother_age, na.rm=TRUE))
+
+plt_region <- ggplot(data = mean_mother_age, mapping = aes(x = year, y= mean_age)) + geom_line(aes(color=region), size=1) + labs(x="year",y="mean_age")
+
+plt_region
+```
+
+### Question 2
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a graphic of mean age of mother versus year, which includes separate lines for each of the three values of `state_color`. (Don't include data for which `state_color` is missing.) The graphic should look like the following. Notice that the colors are different from the default colors. 
+
+</div>
+
+```{r Mean Mother Age per state color Plot}
+state_color_valid <- birth_data%>%
+                      filter(!is.na(state_color))
+
+mean_mother_age2 <- state_color_valid %>%
+                    group_by(year,state_color) %>%
+                    summarize(mean_age = mean(mother_age, na.rm=TRUE))
+
+plt_state_col <- ggplot(data = mean_mother_age2, mapping = aes(x = year, y= mean_age)) + geom_line(aes(color=state_color), size=1) + labs(x="year",y="mean_age") + scale_color_manual(values=c("blue","purple","red"))
+
+plt_state_col
+```
+
+
+Write 2-3 sentences comparing Question 1 and Question 2.
+
+The mean mother age per year with respect to region plot and the mean mother age per year with respect to state color plot are similar in distribution. It makes sense that the distribution would be about the same due to each corresponding region being in its respective state color. The midwest and northeast regions have a state color of blue, so looking at the blue line distribution, it is apparent that the line is a culmination of mean ages for both regions. Most of the south regions has a state color of red and most of the west (not all) region has a state color of purple.
+
+### Question 3
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a graphic of mean weight of the child versus year, which includes separate lines for the two top race categories, white and black. The graphic should look like the following. Notice that the legend is different from the default legend. You'll want to investigate `scale_color_discrete` to change the legend.
+</div>
+
+```{r Child Weight per race Plot}
+top_race <- birth_data %>%
+            filter(child_race == 1 | child_race == 2)
+
+mean_race_weight <- top_race %>%
+  group_by(year,child_race) %>%
+  summarize(mean_weight = mean(weight_pounds, na.rm=TRUE))
+
+plt_weight <- ggplot(data = mean_race_weight, mapping = aes(x = year, y= mean_weight)) + geom_line(aes(color=as.factor(child_race)), size=1) + labs(x="year",y="mean_weight") + scale_color_discrete(name = "Race of child", labels= c("White","Black"))
+
+plt_weight
+```
+
+### Question 4
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Create a graphic showing side-by-side boxplots of the age of the mother for the four regions. (Don't include data for which `region` is missing.) The graphic should look like the following.
+</div>
+
+```{r Mother Age per region boxplots}
+region_valid2 <- birth_data %>%
+              filter(!is.na(region))
+
+plt_region2 <- ggplot(data = region_valid2, mapping = aes(x = region, y= mother_age)) + geom_boxplot()
+
+plt_region2
+```
+
+### Question 5
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Write a function called `quantitative_summary` which takes two inputs:\
+`x`: A numeric vector\
+`group`: A factor vector of the same length as x
+
+and produces a **list** as output which contains the following elements:\
+\
+`missing`: The number of missing values in x\
+`means`: The means of x for each level of groups.\
+`sds`: The standard deviations of x for each level of groups\
+`is.binary`: Set to FALSE for for this function
+
+</div>
+
+<p>
+
+Here is an example of the function in action.
+
+```{r Quantitative Summary}
+quantitative_summary <- function(x,group) {
+  missing <- sum(is.na(x))
+  means <- tapply(x, group, FUN = mean, na.rm = TRUE)
+  sds <- tapply(x, group, FUN = sd, na.rm = TRUE)
+  return(list(missing=missing, means=means, sds=sds, is.binary=FALSE))
+}
+```
+```{r Test Quantitative Summary}
+#Testing function
+quantitative_summary(birth_data$weight_pounds, birth_data$is_male)
+```
+
+Hint:
+
++ When computing the means and standard deviations, you need to exclude missing values using `na.rm`. 
+
+
+### Question 6
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Write a function called `binary_summary` which takes two inputs:\
+\
+`x`: A vector containing the values 0 and 1 (possibly NA)\
+`group`: A factor vector of the same length as x
+
+and produces a **list** as output which contains the following elements:\
+\
+`missing`: The number of missing values in x\
+`prop`: The proportion of 1s in x for each level of groups\
+`is.binary`: Set to TRUE for for this function.
+
+
+</div>
+
+<p>
+
+Here is an example of the function in action using plurality defined as a binary variable (single vs multiple births):
+
+```{r Binary Summary}
+binary_summary <- function(x, group) {
+  missing <- sum(is.na(x))
+  prop <- prop.table(table(x,group))
+  return(list(missing=missing, prop=prop, is.binary=TRUE))
+}
+```
+
+
+```{r Test Binary Summary}
+#Testing function
+birth_data$plurality1 <- ifelse(birth_data$plurality == 1, 1, 2)
+binary_summary(birth_data$plurality1, birth_data$is_male)
+```
+
+
+# Section 2
+
+Flint is the second poorest city of its size in the United States and
+has spent six of the past 15 years in a state of financial emergency.
+One of the cost-cutting measures taken by emergency managers
+was to stop buying water, sourced from Lake Huron, from the
+Detroit Water and Sewerage Department. Instead, Flint would use
+the Flint River for its water supply while waiting for a new pipeline
+to Lake Huron to be opened. The move was expected to save
+roughly \$5 million over a period of two years.
+
+The Flint River supply was switched on in April 2014. Not
+long after, problems arose.Flint resident and mother of four LeeAnne Walters 
+noticed that the water coming out of her taps was orange. More
+worryingly, her family's hair was falling out, her preschool sons
+had broken out in rashes and one of them had stopped growing.
+
+The orange colour was from iron, but the family's symptoms
+pointed to a far more dangerous contaminant: lead. (Langkjaer - Bain 2017)
+
+
+## Introduction
+
+The data set consists of 271 homes sampled with three water 
+lead contaminant values at designated time points. The lead content is in 
+parts per billion (ppb). Additionally, some location data is given 
+about each home.
+
+To get started, read in the `flint.csv` file using the function `read.csv`, as
+was done in  the ICA with the cereal data.
+However, you do not need to use the `attach` function. The data set has
+five variables:
+
+- **id**: sample id number
+- **zip**: zip code in Flint as to the water sample's location
+- **ward**: ward in Flint as to the water sample's location
+- **draw**: water sample at one of three time points
+- **lead**: lead content in parts per billion
+
+Before you get started, read *The murky tale of Flint's deceptive water data*
+by Langkjaer - Bain (2017).
+
+```{r read data,echo=TRUE}
+flint <- read.csv("flint.csv")
+glimpse(flint)
+```
+
+
+### Question 1
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+ Select one passage that you found particularly striking (perhaps you strongly agreed or disagreed with it, perhaps it made you question an assumption or seemed unclear) in the article and write a 4-5 sentence paragraph commenting on it.
+
+One particular passage, "Sampling Errors" caught my attention a lot. It was stated that the MDEQ allowed for procedures for sampling the water to underestimate the amount of lead that was in the water. It's quite disappointing that the city and MDEQ would allow this and try to falsely claim that the water supply "isn't that bad". I strongly disagree with the way the MDEQ collected and handled their data. The MDEQ also seemed to dismiss concerns that were raised by scientists and tried to make it seem as though what they were doing was perfectly fine. The MDEQ was fully aware of what they were doing and it is truly sad to know that they allowed the water supply be as contaminated as it was for so long.
+
+</div> 
+ 
+### Question 2
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+How many unique zip codes are in the data set? How many unique wards are in the data set? 
+
+```{r Unique Zipcodes and Wards}
+num_zipcodes <- length(unique(flint$zip))
+num_zipcodes
+
+num_wards <- length(unique(flint$ward))
+num_wards
+```
+There are 8 unique zip codes and 10 unique wards in the dataset.
+
+Do the number of wards in the data set match how many wards
+Flint has? If not, suggest a way to handle this discrepancy.
+
+No, the number of wards in the data set do not match the number of wards Flint has. Flint has 9 wards. A way to handle this discrepancy is to assume that ward 0 is not a ward. There can only be between 1 and 9 wards, so, we must dismiss/ drop off the values that correspond to ward 0 in the dataset as this may be a typo within the dataset.
+
+</div>
+
+### Question 3
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Which ward appears to have the worst water quality? Note that your answer should consider mean, median, and maximum lead levels. Your choice of ‘worst ward’ should include justification for why some of these statistics are more important to consider than others.
+```{r Summary Statistics per Ward}
+flint %>%
+  group_by(ward) %>%
+  summarize(mean_lead = mean(lead), med_lead = median(lead), max_lead = max(lead))
+```
+Ward 2 appears to have the worst water quality. Ward 2 has the largest maximum lead value and the largest mean lead value compared to all other wards. The maximum lead value, in my opinion, is the most important value to consider as it showcases the highest lead content found in the water supply within the ward. A maximum lead value of 1051 is extremely high compared to the second highest value of 239.7 for ward 6.
+
+</div>
+
+### Question 4
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Langkjear-Bain (2017) writes at length about the practice of ‘drawing’ water before sampling it for lead levels. Compute the median and mean lead values for each draw. How do they compare? Create a histogram of the lead values for just the first draw and comment on the histogram’s shape – does it confirm the earlier relationships between mean and median?
+
+</div>
+
+```{r Mean and Median Draw Values}
+flint %>%
+  group_by(draw) %>%
+  summarize(mean_draw = mean(lead), med_draw = median(lead))
+```
+
+```{r First Draw Histogram}
+first_draw <- flint %>%
+              filter(draw == "first")
+
+plt <- ggplot(data = first_draw, mapping = aes(x = lead)) + geom_histogram(binwidth = 2)
+
+plt
+```
+
+The mean draw value for the first and second draw are fairly close, however, the third draw mean value is extremely low compared to the first and second. The median is smaller than the mean in all "drawing" cases, so, it could be assumed that the data will be skewed. The median is also quite low for both the second and third draw.
+
+Looking at the histogram for the first draw, we can see that the data is strongly skewed to the right. It is also apparent that the median is less than the mean and that there are some fairly large values that drive the mean upward. This confirms the relationship between the mean and median computed above.
+
+### Question 5
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Compute the sample quantile for the *85th percentile* of lead 
+values for each draw. Comment on what you observe. Is any draw above the EPA action threshold level?
+
+</div>
+
+```{r Compute Sample Quantiles}
+draw_one <- flint %>%
+              filter(draw== "first")
+
+draw_two <- flint %>%
+              filter(draw== "second")
+
+draw_three <- flint %>%
+              filter(draw== "third")
+draw_one_85 <- quantile(draw_one$lead, c(0.85), na.rm = TRUE)
+draw_one_85
+
+draw_two_85 <- quantile(draw_two$lead, c(0.85), na.rm = TRUE)
+draw_two_85
+
+draw_three_85 <- quantile(draw_three$lead, c(0.85), na.rm = TRUE)
+draw_three_85
+```
+
+Looking at the 85th percentile quantiles, it can be seen that the first draw has the largest lead sample quantile value. Going from first draw to third draw, the values drop by approximately 2 times the previous draw amount. The first draw was well above the 10% EPA action threshold level, being 16.5%.
+
+### Question 6
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Recreate the below plot based on data from zip code **48505**. 
+
+In 1-2 sentences, comment on whether the plot confirms or contradicts the statement below, pulled from Langkjear-Bain (2017)
+
+“Pre-stagnation flushing” – as it is known – “may potentially lower” lead levels as flushing “removes water that may have been in contact with the lead service line for extended periods” 
+
+</div>
+
+```{r boxplot zipcode 48505, echo=TRUE}
+unique_zip <- flint %>%
+              filter(zip == 48505)
+
+plt_zip <- ggplot(data = unique_zip, mapping = aes(x = draw, y= lead)) + geom_boxplot(fill = "gray") + labs(title = "Lead values by draw for zip code 48505", x = "Sample draw", y= "Lead (ppb)")
+
+plt_zip
+```
+
+The plot confirms the statement. We can see that after each flush during a 5 minute time period, the lead levels decrease.
+### Question 7
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+What is the largest lead value? What draw and zip code does it belong to?
+Comment on how we should handle this value if further statistical analysis were to be performed. 
+</div>
+
+```{r Find Largest Lead Value}
+max_lead_ind <- which.max(flint$lead)
+max_lead <- flint[max_lead_ind,]
+max_lead
+```
+
+The largest lead value is 1051 ppb. The draw is the second draw and the value corresponds to zip code 48504. This value may be handled as an outlier if further statistical analysis were to be performed. If no values exceed 500 ppb, it should be assumed that this one value is an outlier deviating from the mean by a significant amount.
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+What is the smallest lead value? 
+What draw and zip code does it belong to?
+
+</div>
+
+```{r Find smallest lead value}
+min_lead_ind <- which.min(flint$lead)
+min_lead <- flint[min_lead_ind,]
+min_lead
+```
+
+The smallest lead value is 0.031 ppb. The draw is the third draw and the value corresponds to zip code 48505.
+
+### Question 8
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+One way to standarize the data is to use z-scores. 
+Based on each draw, compute z-scores for the lead values.
+How many z-scores exceed three in absolute
+value for each draw?
+
+</div>
+
+```{r z-scores}
+#Extract lead values by draws
+first_draw <- flint %>%
+              filter(draw == "first")
+
+second_draw <- flint %>%
+              filter(draw == "second")
+
+third_draw <- flint %>%
+              filter(draw == "third")
+#find the z scores for each draw using: {lead.value.draw# - mean(lead.value.draw#)} /sd(lead.value.#draw#)
+
+z1 <- (first_draw$lead - mean(first_draw$lead)) / sd(first_draw$lead)
+
+z2 <- (second_draw$lead - mean(second_draw$lead)) / sd(second_draw$lead)
+
+z3 <- (third_draw$lead - mean(third_draw$lead)) / sd(third_draw$lead)
+
+#Extract the z.scores which are above 3.
+
+above_3_draw1 <- z1[abs(z1) > 3]
+above_3_draw1
+
+above_3_draw2 <- z2[abs(z2) > 3]
+above_3_draw2
+
+above_3_draw3 <- z3[abs(z3) > 3]
+above_3_draw3
+
+num_above3 <- length(above_3_draw1) + length(above_3_draw2) + length(above_3_draw3)
+
+num_above3
+```
+
+18 z-scores exceed three in absolute value for each draw.
+
+### Question 9
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+Based on your analysis in questions 1-8, does it seem that flushing the 
+water decreases the lead content? You may include further code and 
+visualizations.
+
+```{r Flushing Lead Plot}
+
+flush_lead <- ggplot(data = flint, mapping = aes(x = id, y= lead)) + geom_line(aes(color=as.factor(draw)), size=2) + labs(x = "id", y= "Lead (ppb)")
+
+flush_lead
+```
+
+Based on my analysis in questions 1-8. It seems as though flushing the water decreasse the lead content. As we observe each draw from first to third, the lead values drop by a reasonable amount (though there are some outliers within the data).
+
+</div>
+
+
+# Essential details {.tabset .tabset-fade .tabset-pills}
+
+
+### Deadline and submission instructions
+
+- The deadline to submit Homework 2 is **11:00pm on Saturday, 13 March, 2021.** 
+
+- This is a individual assignment.
+
+- Submit your work by uploading **both** your RMD and HTML/PDF files through D2L. Kindly double check your submission to note whether the everything is displayed in the uploaded version of the output in D2L or not. If submitting HTML outputs, please zip the files for submission.
+
+- Kindly ensure that **the `echo=TRUE` is set in the every chunk option.**
+
+- Late work **will not be accepted** except under certain extraordinary circumstances.
+
+
+### Help
+
+- Post general questions in the Teams HW 1 channel. If you are trying to get help on a code error, explain your error in detail
+
+- Feel free to visit us in during our virtual office hours or make an appointment.
+
+- Communicate with your classmates, but do not share snippets of code.
+
+- **The instructional team will not answer any questions within the first 24 hours of this homework being assigned, and we will not answer any questions after 6 P.M of the due date}.**
+
+### Academic integrity
+
+This is an individual assignment. You may discuss ideas, how to debug code, or how to approach a problem with your classmates.You may also post your general questions in the HW2 channel in Teams.But you may not copy-and-paste another individual's code from this class. As a reminder, below is the policy on sharing and using other's code.
+
+>Similar reproducible examples (reprex) exist online that will help you answer 
+many of the questions posed on in-class assignments, pre-class assignments, 
+homework assignments, and midterm exams. Use of these resources is allowed 
+unless it is written explicitly on the assignment. You must always cite any 
+code you copy or use as inspiration. Copied code without citation is 
+plagiarism and will result in a 0 for the assignment.
+
+
+### Grading
+
+Use the R Markdown blank file that is provided. If you want, you can use your own formatting. Self-formatting is at your discretion but is graded. Use the
+in-class assignments and resources available online for inspiration. Another 
+useful resource for R Markdown formatting is
+available at: https://holtzy.github.io/Pimp-my-rmd/
+
+**Topic**|**Points**
+---------|----------:|
+Questions(total 15) | 75 
+R Markdown formatting and knitting | 7
+Communication of results| 10
+Code style| 8
+**Total**|**100**
+
+Please note: Code style includes code efficiency.
+
+
+# Reference
+
+1. http://www.cdc.gov/nchs/data_access/Vitalstatsonline.htm
+
+2. Langkjr-Bain, R. (2017), The murky tale of Flint's deceptive water data. Significance, 14: 16-21. 
+
+3. https://holtzy.github.io/Pimp-my-rmd/
